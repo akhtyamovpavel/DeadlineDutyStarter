@@ -7,9 +7,11 @@ import sqlite3
 
 from fastapi import FastAPI
 from fastapi import HTTPException
+from fastapi import Request
 from pydantic import BaseModel
 
 from app.config import settings
+from app.security import authorize
 from app.web import router as web_router
 
 @asynccontextmanager
@@ -30,6 +32,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 app.include_router(web_router)
+
+
+@app.middleware("http")
+async def check_access(request: Request, call_next):
+    error = authorize(request)
+    if error is not None:
+        return error
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 class DeadlineIn(BaseModel):

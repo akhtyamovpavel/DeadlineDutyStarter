@@ -13,6 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import app.main as deadline_service
+from conftest import authorize_test_client
 
 PROJECT = Path(__file__).resolve().parents[1]
 
@@ -38,6 +39,8 @@ class FixedDate(date):
 
 service.date = FixedDate
 with TestClient(service.app) as client:
+    client.auth = ("test-user", "test-password")
+    client.headers["X-Requested-With"] = "DeadlineDuty"
     if sys.argv[1] == "create":
         first = client.post("/deadlines", json={"title": "first", "due_date": "2026-01-15"})
         second = client.post("/deadlines", json={"title": "second", "due_date": "2026-01-15"})
@@ -58,6 +61,8 @@ print(json.dumps(result))
 def run_process(database_path, operation, *arguments):
     environment = os.environ.copy()
     environment["DEADLINES_DB_PATH"] = str(database_path)
+    environment["AUTH_USERNAME"] = "test-user"
+    environment["AUTH_PASSWORD"] = "test-password"
     command = [sys.executable, "-c", PROCESS_CODE, operation, *arguments]
     result = subprocess.run(
         command,
@@ -101,6 +106,7 @@ def test_concurrent_creates_keep_distinct_ids_and_all_data(tmp_path, monkeypatch
         return response.json()
 
     with TestClient(deadline_service.app) as client:
+        authorize_test_client(client)
         with ThreadPoolExecutor(max_workers=12) as workers:
             created = list(workers.map(create_deadline, range(24)))
         response = client.get("/today")
@@ -131,6 +137,7 @@ def test_failed_read_rolls_back_completion(tmp_path, monkeypatch):
         return original_connect(path, factory=FailingReadConnection)
 
     with TestClient(deadline_service.app) as client:
+        authorize_test_client(client)
         payload = {"title": "pending", "due_date": "2000-01-01"}
         created = client.post("/deadlines", json=payload)
         deadline_id = created.json()["id"]
@@ -154,6 +161,7 @@ def test_concurrent_completion_is_idempotent(tmp_path, monkeypatch):
         return client.post(f"/deadlines/{deadline_id}/done")
 
     with TestClient(deadline_service.app) as client:
+        authorize_test_client(client)
         payload = {"title": "pending", "due_date": "2000-01-01"}
         created = client.post("/deadlines", json=payload)
         deadline_id = created.json()["id"]
