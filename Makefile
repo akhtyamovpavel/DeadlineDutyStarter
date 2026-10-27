@@ -2,7 +2,7 @@
 # Их наличие проверяется на занятии: агенту нужен воспроизводимый способ
 # запустить проект и убедиться, что он не сломан.
 
-.PHONY: install run test push
+.PHONY: install run test push hooks
 
 install:
 	python3 -m venv .venv
@@ -16,3 +16,6 @@ test:
 
 push:
 	bash scripts/push_and_check.sh
+
+hooks:
+	bash scripts/install_hooks.sh
