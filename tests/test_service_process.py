@@ -22,6 +22,8 @@ def running_service(database_path):
     port = listener.getsockname()[1]
     environment = os.environ.copy()
     environment["DEADLINES_DB_PATH"] = str(database_path)
+    environment["AUTH_USERNAME"] = "test-user"
+    environment["AUTH_PASSWORD"] = "test-password"
     command = [sys.executable, "-m", "uvicorn", "app.main:app"]
     command.extend(["--fd", str(listener.fileno()), "--no-access-log"])
     process = subprocess.Popen(
@@ -34,7 +36,11 @@ def running_service(database_path):
     )
     listener.close()
     try:
-        with httpx.Client(base_url=f"http://127.0.0.1:{port}", trust_env=False) as client:
+        headers = {"X-Requested-With": "DeadlineDuty"}
+        auth = ("test-user", "test-password")
+        origin = f"http://127.0.0.1:{port}"
+        client_config = {"base_url": origin, "trust_env": False, "auth": auth, "headers": headers}
+        with httpx.Client(**client_config) as client:
             deadline = time.monotonic() + 10
             while True:
                 if process.poll() is not None:
