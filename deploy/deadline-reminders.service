@@ -1,0 +1,19 @@
+[Unit]
+Description=Deadline Duty Telegram reminders
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deadline-duty
+Group=deadline-duty
+WorkingDirectory=/opt/deadline-duty/app
+StateDirectory=deadline-duty
+StateDirectoryMode=0700
+Environment=DEADLINES_DB_PATH=/var/lib/deadline-duty/deadlines.sqlite3
+EnvironmentFile=/etc/deadline-duty/reminders.conf
+ExecStart=/opt/deadline-duty/app/.venv/bin/python -m app.reminders
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
