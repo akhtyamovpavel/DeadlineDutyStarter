@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+remote_name=$1
+remote_url=$2
+default_ref=$(git symbolic-ref --quiet refs/remotes/origin/HEAD) || {
+    echo "Cannot determine the default branch. Run git remote set-head origin -a."
+    exit 1
+}
+default_branch=${default_ref#refs/remotes/origin/}
+
+case "$remote_url" in
+    git@github.com:*) repository=${remote_url#git@github.com:} ;;
+    https://github.com/*) repository=${remote_url#https://github.com/} ;;
+    *)
+        echo "The push hook requires a GitHub remote."
+        exit 1
+        ;;
+esac
+repository=${repository%.git}
+owner=${repository%%/*}
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    if [[ "$remote_ref" == "refs/heads/$default_branch" ]]; then
+        echo "Direct pushes to $default_branch are blocked. Use a branch and a pull request."
+        exit 1
+    fi
+    if [[ "$remote_ref" != refs/heads/* || "$local_ref" == "(delete)" ]]; then
+        continue
+    fi
+    branch=${remote_ref#refs/heads/}
+    if [[ "$remote_sha" =~ ^0+$ ]]; then
+        echo "First push of $branch: create a pull request after the push."
+        continue
+    fi
+    if ! command -v gh >/dev/null; then
+        echo "Install GitHub CLI to verify the pull request for $branch."
+        exit 1
+    fi
+    pull_requests=$(gh api --method GET "repos/$repository/pulls" \
+        -f state=open -f "head=$owner:$branch" -f "base=$default_branch" \
+        --jq '.[].html_url') || {
+        echo "Could not check pull requests for $branch on $remote_name."
+        exit 1
+    }
+    if [[ -z "$pull_requests" ]]; then
+        echo "No open pull request for $branch. Create one before pushing again."
+        exit 1
+    fi
+done
