@@ -33,13 +33,18 @@ class Element {
 
 async function runScenario() {
   const origin = process.env.WEB_INTEGRATION_ORIGIN;
-  const page = await fetch(`${origin}/`);
+  const credentials = Buffer.from("test-user:test-password").toString("base64");
+  const authenticatedFetch = (path, options = {}) => {
+    const headers = {Authorization: `Basic ${credentials}`, ...options.headers};
+    return fetch(`${origin}${path}`, {...options, headers});
+  };
+  const page = await authenticatedFetch("/");
   assert.equal(page.status, 200);
   const html = await page.text();
   assert.match(html, /id="deadline-form"/);
   assert.match(html, /src="\/assets\/app.js"/);
 
-  const javascript = await fetch(`${origin}/assets/app.js`);
+  const javascript = await authenticatedFetch("/assets/app.js");
   assert.equal(javascript.status, 200);
   const source = await javascript.text();
 
@@ -66,7 +71,7 @@ async function runScenario() {
   };
   const requests = [];
   const realFetch = (path, options) => {
-    const request = fetch(`${origin}${path}`, options);
+    const request = authenticatedFetch(path, options);
     requests.push(request);
     return request;
   };
@@ -84,7 +89,7 @@ async function runScenario() {
   const items = elements["#deadline-list"].children;
   assert.equal(items.length, 1);
   assert.equal(items[0].children[0].children[0].textContent, "Проверить сценарий");
-  const todayResponse = await fetch(`${origin}/today`);
+  const todayResponse = await authenticatedFetch("/today");
   const today = await todayResponse.json();
   assert.equal(today.length, 1);
   assert.equal(today[0].title, "Проверить сценарий");
@@ -93,7 +98,7 @@ async function runScenario() {
   await items[0].children[1].events.click();
   assert.equal(elements["#status"].textContent, "Дедлайн отмечен выполненным.");
   assert.equal(elements["#deadline-list"].children.length, 0);
-  const afterCompletion = await fetch(`${origin}/today`);
+  const afterCompletion = await authenticatedFetch("/today");
   assert.deepEqual(await afterCompletion.json(), []);
 }
 

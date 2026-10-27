@@ -35,6 +35,8 @@ def test_client_scenario_with_real_service(tmp_path):
 
     environment = os.environ.copy()
     environment["DEADLINES_DB_PATH"] = str(tmp_path / "integration.sqlite3")
+    environment["AUTH_USERNAME"] = "test-user"
+    environment["AUTH_PASSWORD"] = "test-password"
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
         listener.bind(("127.0.0.1", 0))
         listener.listen(128)
