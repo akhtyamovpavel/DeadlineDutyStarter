@@ -9,6 +9,7 @@ import pytest
 
 from app.config import settings
 from app.main import app
+from conftest import authorize_test_client
 
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -19,6 +20,7 @@ def client(tmp_path, monkeypatch):
     database_path = tmp_path / "web-test.sqlite3"
     monkeypatch.setattr(settings, "deadlines_db_path", str(database_path))
     with TestClient(app) as test_client:
+        authorize_test_client(test_client)
         yield test_client
 
 

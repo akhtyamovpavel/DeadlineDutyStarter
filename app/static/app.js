@@ -10,6 +10,9 @@ const error = document.querySelector("#error");
 const todayHeading = document.querySelector("#today-heading");
 
 async function request(url, options) {
+  if (options && options.method && !["GET", "HEAD", "OPTIONS"].includes(options.method)) {
+    options.headers = {...options.headers, "X-Requested-With": "DeadlineDuty"};
+  }
   const response = await fetch(url, options);
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);

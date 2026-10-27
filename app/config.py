@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     api_token: str = "не задан"
     debug: bool = False
     deadlines_db_path: str = "deadlines.sqlite3"
+    auth_username: str = ""
+    auth_password: str = ""
 
 
 settings = Settings()

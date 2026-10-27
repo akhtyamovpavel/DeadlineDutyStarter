@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import app.main as deadline_service
+from conftest import authorize_test_client
 
 
 class FixedDate(date):
@@ -24,6 +25,7 @@ def isolated_storage_and_date(monkeypatch, tmp_path):
 @pytest.fixture
 def client():
     with TestClient(deadline_service.app) as test_client:
+        authorize_test_client(test_client)
         yield test_client
 
 

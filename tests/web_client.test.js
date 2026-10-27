@@ -114,7 +114,9 @@ test("создание и выполнение обновляют список �
   assert.equal(elements["#today-heading"].focused, true);
   assert.equal(calls[1].url, "/deadlines");
   assert.equal(calls[1].options.method, "POST");
+  assert.equal(calls[1].options.headers["X-Requested-With"], "DeadlineDuty");
   assert.equal(calls[3].url, "/deadlines/1/done");
+  assert.equal(calls[3].options.headers["X-Requested-With"], "DeadlineDuty");
 });
 
 test("ошибка сохранения не стирает введённые данные и позволяет повторить", async () => {
