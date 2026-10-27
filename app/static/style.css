@@ -1,0 +1,174 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  color: #17231c;
+  background: #f2f4ed;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.page {
+  width: min(100% - 2rem, 48rem);
+  margin: 0 auto;
+  padding: 3rem 0;
+}
+
+.heading {
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  color: #27563a;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+h1, h2, p {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.1;
+  margin-bottom: 0.75rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.heading p:last-child,
+.section-heading p {
+  color: #4b5b50;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #d4ddd1;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+input, button {
+  font: inherit;
+}
+
+input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #82938a;
+  border-radius: 0.45rem;
+  background: #fff;
+  color: #17231c;
+}
+
+button {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.45rem;
+  border: 1px solid #27563a;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.primary {
+  background: #27563a;
+  color: #fff;
+}
+
+.secondary {
+  background: #fff;
+  color: #27563a;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.status:not(:empty), .error:not(:empty) {
+  padding: 0.7rem;
+  border-radius: 0.45rem;
+}
+
+.status:not(:empty) {
+  color: #17452c;
+  background: #eaf4eb;
+}
+
+.error:not(:empty) {
+  color: #7c1d1d;
+  background: #fff0ee;
+}
+
+.deadline-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.deadline-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid #e0e6df;
+}
+
+.deadline-details {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.deadline-date {
+  display: block;
+  color: #4b5b50;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 35rem) {
+  .page {
+    padding: 1.5rem 0;
+  }
+
+  .fields {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading, .deadline-list li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

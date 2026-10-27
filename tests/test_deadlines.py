@@ -1,60 +1,77 @@
-"""Базовые проверки. Их запуск одной командой это и есть test command проекта."""
+"""Проверки основного сценария сервиса дедлайнов."""
 
 from datetime import date
-from datetime import timedelta
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import app
-from app.main import deadlines
+import app.main as deadline_service
 
-client = TestClient(app)
+
+class FixedDate(date):
+    @classmethod
+    def today(cls):
+        return date(2026, 1, 15)
 
 
 @pytest.fixture(autouse=True)
-def чистое_хранилище():
-    """Каждый тест начинается с пустого списка, иначе они влияют друг на друга."""
-    deadlines.clear()
-    yield
-    deadlines.clear()
+def isolated_storage_and_date(monkeypatch, tmp_path):
+    database_path = str(tmp_path / "deadlines.sqlite3")
+    monkeypatch.setattr(deadline_service.settings, "deadlines_db_path", database_path)
+    monkeypatch.setattr(deadline_service, "date", FixedDate)
 
 
-def test_health_отвечает_ok():
-    ответ = client.get("/health")
-    assert ответ.status_code == 200
-    assert ответ.json() == {"status": "ok"}
+@pytest.fixture
+def client():
+    with TestClient(deadline_service.app) as test_client:
+        yield test_client
 
 
-def test_дедлайн_создаётся():
-    данные = {"title": "сдать лабу", "due_date": str(date.today())}
-    ответ = client.post("/deadlines", json=данные)
-    assert ответ.status_code == 200
-    assert ответ.json()["title"] == "сдать лабу"
-    assert ответ.json()["done"] is False
+def test_health_returns_ok(client):
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
 
 
-def test_сегодня_показывает_то_что_горит():
-    сегодня = str(date.today())
-    послезавтра = str(date.today() + timedelta(days=2))
-    client.post("/deadlines", json={"title": "горит", "due_date": сегодня})
-    client.post("/deadlines", json={"title": "потом", "due_date": послезавтра})
-
-    ответ = client.get("/today")
-    названия = [item["title"] for item in ответ.json()]
-    assert названия == ["горит"]
+def test_create_deadline(client):
+    payload = {"title": "сдать лабу", "due_date": "2026-01-15"}
+    response = client.post("/deadlines", json=payload)
+    assert response.status_code == 200
+    assert response.json()["title"] == "сдать лабу"
+    assert response.json()["done"] is False
 
 
-def test_отмеченный_дедлайн_уходит_из_списка():
-    данные = {"title": "сдать отчёт", "due_date": str(date.today())}
-    создан = client.post("/deadlines", json=данные)
-    deadline_id = создан.json()["id"]
+def test_today_includes_overdue_and_today_but_not_future_or_done(client):
+    deadlines = [
+        {"title": "просрочено", "due_date": "2026-01-14"},
+        {"title": "сегодня", "due_date": "2026-01-15"},
+        {"title": "позже", "due_date": "2026-01-16"},
+        {"title": "выполнено", "due_date": "2026-01-15"},
+    ]
+    for payload in deadlines:
+        response = client.post("/deadlines", json=payload)
+        assert response.status_code == 200
+        if payload["title"] == "выполнено":
+            completed_id = response.json()["id"]
+            completion = client.post(f"/deadlines/{completed_id}/done")
+            assert completion.status_code == 200
 
-    client.post(f"/deadlines/{deadline_id}/done")
+    response = client.get("/today")
+    assert response.status_code == 200
+    titles = {item["title"] for item in response.json()}
+    assert titles == {"просрочено", "сегодня"}
 
+
+def test_completed_deadline_disappears_from_today(client):
+    payload = {"title": "сдать отчёт", "due_date": "2026-01-15"}
+    created = client.post("/deadlines", json=payload)
+    deadline_id = created.json()["id"]
+
+    response = client.post(f"/deadlines/{deadline_id}/done")
+    assert response.status_code == 200
     assert client.get("/today").json() == []
 
 
-def test_несуществующий_дедлайн_отдаёт_404():
-    ответ = client.post("/deadlines/9999/done")
-    assert ответ.status_code == 404
+def test_nonexistent_deadline_returns_404(client):
+    response = client.post("/deadlines/9999/done")
+    assert response.status_code == 404

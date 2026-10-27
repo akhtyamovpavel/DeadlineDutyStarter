@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     # Секрет намеренно вынесен в окружение: в код такие значения не попадают никогда.
     api_token: str = "не задан"
     debug: bool = False
+    deadlines_db_path: str = "deadlines.sqlite3"
 
 
 settings = Settings()

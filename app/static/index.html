@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Дежурный по дедлайнам</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <header class="heading">
+      <p class="eyebrow">Личный список</p>
+      <h1>Дежурный по дедлайнам</h1>
+      <p>Запиши срок и возвращайся к тому, что нужно сделать сегодня.</p>
+    </header>
+
+    <section class="panel" aria-labelledby="create-heading">
+      <h2 id="create-heading">Новый дедлайн</h2>
+      <form id="deadline-form">
+        <div class="fields">
+          <div class="field">
+            <label for="title">Что нужно сделать</label>
+            <input id="title" name="title" type="text" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="due-date">Дата</label>
+            <input id="due-date" name="due_date" type="date" required>
+          </div>
+        </div>
+        <button class="primary" type="submit">Добавить дедлайн</button>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="today-heading">
+      <div class="section-heading">
+        <div>
+          <h2 id="today-heading" tabindex="-1">На сегодня</h2>
+          <p>Здесь находятся текущие и просроченные задачи.</p>
+        </div>
+        <button id="refresh" class="secondary" type="button">Обновить список</button>
+      </div>
+      <p id="status" class="status" role="status"></p>
+      <p id="error" class="error" role="alert"></p>
+      <p id="empty" hidden>На сегодня дедлайнов нет.</p>
+      <ul id="deadline-list" class="deadline-list"></ul>
+    </section>
+    <noscript>Для работы страницы включи JavaScript.</noscript>
+  </main>
+</body>
+</html>
