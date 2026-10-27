@@ -10,6 +10,7 @@ WorkingDirectory=/opt/deadline-duty/app
 StateDirectory=deadline-duty
 StateDirectoryMode=0700
 Environment=DEADLINES_DB_PATH=/var/lib/deadline-duty/deadlines.sqlite3
+EnvironmentFile=-/etc/deadline-duty.env
 ExecStart=/usr/bin/env /opt/deadline-duty/app/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 Restart=on-failure
 RestartSec=3
